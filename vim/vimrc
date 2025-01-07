@@ -18,7 +18,12 @@ call plug#begin()
     Plug 'noahfrederick/vim-noctu'
     Plug 'itchyny/lightline.vim'
     Plug 'preservim/nerdtree'
+    Plug 'mattn/emmet-vim'
+    Plug 'w0rp/ale'
+    Plug 'airblade/vim-gitgutter'
 call plug#end()
+
+map <C-A-o> :NERDTreeToggle<CR>
 
 set tabstop=4
 set softtabstop=4
