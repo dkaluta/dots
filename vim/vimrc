@@ -1,0 +1,25 @@
+call plug#begin()
+    Plug 'tpope/vim-sensible'
+    Plug 'tpope/vim-fugitive'
+    Plug 'tpope/vim-eunuch'
+    Plug 'tpope/vim-surround'
+    Plug 'tpope/vim-commentary'
+    Plug 'noahfrederick/vim-noctu'
+    Plug 'itchyny/lightline.vim'
+call plug#end()
+
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set expandtab
+set autoindent
+set number
+set colorcolumn=80
+set mouse=a
+set cursorline
+set ttyfast
+
+let g:lightline = {
+     \ 'colorscheme': '16color',
+    \}
+colorscheme noctu
