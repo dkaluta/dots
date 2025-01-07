@@ -37,6 +37,8 @@ set cursorline
 set ttyfast
 
 let g:lightline = {
-     \ 'colorscheme': '16color',
+    \ 'colorscheme': '16color',
+    \ 'separator': { 'left': "\ue0bc", 'right': "\ue0ba" },
+    \ 'subseparator': { 'left': "\ue0bd", 'right': "\ue0bb" },
     \}
 colorscheme noctu

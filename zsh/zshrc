@@ -1,0 +1,34 @@
+# ! MY CHANGES START HERE!
+# fix colors somewhere
+export TERM=xterm-256color
+export EDITOR=gvim
+
+# zplug
+source ~/.zplug/init.zsh
+zplug mafredri/zsh-async, from:github
+zplug sindresorhus/pure, use:pure.zsh, from:github, as:theme
+
+# color pure
+zstyle :prompt:pure:execution_time          color white
+zstyle :prompt:pure:git:arrow               color white
+zstyle :prompt:pure:git:branch              color white
+zstyle :prompt:pure:git:branch:cached       color white
+zstyle :prompt:pure:git:dirty               color white
+zstyle :prompt:pure:host                    color white
+zstyle :prompt:pure:prompt:error            color white
+zstyle :prompt:pure:prompt:success          color white
+zstyle :prompt:pure:user                    color white
+zstyle :prompt:pure:user:root               color white
+zstyle :prompt:pure:virtualenv              color white
+
+
+# Install plugins if there are plugins that have not been installed
+if ! zplug check --verbose; then
+    printf "Install? [y/N]: "
+    if read -q; then
+        echo; zplug install
+    fi
+fi
+
+# Then, source plugins and add commands to $PATH
+zplug load
