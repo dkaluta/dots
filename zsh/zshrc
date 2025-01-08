@@ -3,6 +3,7 @@
 export TERM=xterm-256color
 export EDITOR=gvim
 
+
 # zplug
 source ~/.zplug/init.zsh
 zplug mafredri/zsh-async, from:github

@@ -1,0 +1,14 @@
+[user]
+	name = David Kaluta
+[init]
+	defaultBranch = main
+[core]
+	excludesfile = /Users/dk/.config/git/ignore
+[commit]
+    gpgsign=true
+[include]
+    path = ~/.gitconfig.personal
+[includeIf "gitdir=~/Projects/Personal"]
+    path = ~/.gitconfig.personal
+[includeIf "gitdir=~/Projects/School"]
+    path = ~/.gitconfig.school
