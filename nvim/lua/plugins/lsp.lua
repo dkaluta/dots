@@ -1,23 +1,5 @@
 return {
 	{
-		"neovim/nvim-lspconfig",
-		init = function()
-			local lspconfig = require("lspconfig")
-			lspconfig.pyright.setup({})
-			lspconfig.jdtls.setup({})
-			lspconfig.sourcekit.setup({
-                capabilities = {
-                    workspace = {
-                        didChangeWatchedFiles = {
-                            dynamicRegistration = true,
-                        },
-                    },
-                },
-            })
-			lspconfig.vtsls.setup({})
-		end,
-	},
-	{
 
 		"MunifTanjim/prettier.nvim",
         dependencies = {
@@ -135,7 +117,10 @@ return {
 	},
 	{
 		"williamboman/mason.nvim",
-		dependencies = {"williamboman/mason-lspconfig.nvim",},
+		dependencies = {
+			"williamboman/mason-lspconfig.nvim",
+			"neovim/nvim-lspconfig",
+		},
 		init = function()
 			require("mason").setup()
 			require("mason-lspconfig").setup()

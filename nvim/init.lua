@@ -15,8 +15,8 @@ set.expandtab = true
 set.autoindent = true
 wo.number = true
 set.colorcolumn = "80"
-vim.o.mouse = a
+vim.o.mouse = "a"
 set.cursorline = true
 set.ttyfast = true
 
-vim.cmd [[colorscheme xcodehc]]
+vim.cmd [[colorscheme monokai-pro]]
