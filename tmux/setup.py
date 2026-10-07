@@ -29,17 +29,22 @@ if sys.platform.startswith("linux"):
 
 backup = home_path(".cache/dotfiles-backups/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
 for name, relative in ((".tmux.conf", "tmux/tmux.conf"),
+                       (".config/tmux/tmux.conf", "tmux/tmux.conf"),
                        (".vimrc", "vim/vimrc"),
                        (".zshrc.custom", "zsh/zshrc")):
     target = repo / relative
     if not target.is_file():
         raise SystemExit("Missing configuration: " + str(target))
     link = home / name
-    if link.is_symlink() and link.resolve() == target.resolve():
+    if not link.parent.resolve().is_relative_to(home):
+        raise SystemExit("Link parent resolves outside home: " + str(link))
+    link.parent.mkdir(parents=True, exist_ok=True)
+    if link.resolve() == target.resolve():
         continue
     if link.exists() or link.is_symlink():
         backup.mkdir(parents=True, mode=0o700, exist_ok=True)
+        (backup / name).parent.mkdir(parents=True, mode=0o700, exist_ok=True)
         os.replace(link, backup / name)
-    link.symlink_to(os.path.relpath(target, home))
+    link.symlink_to(os.path.relpath(target, link.parent))
     print("Linked", name, "to", target)
 print("Terminal links and private state directories are ready.")

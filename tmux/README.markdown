@@ -35,3 +35,6 @@ Install links and private state directories after cloning or pulling:
     python3 tmux/setup.py
 
 The helper backs up replaced home files and leaves unrelated files alone.
+
+Setup also links the XDG tmux configuration to the shared file, preserving older themes in backup.
+Shell startup explicitly selects ~/.tmux.conf so another config cannot override the plain-text layout.

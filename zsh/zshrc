@@ -68,5 +68,5 @@ fi
 
 # Automatic tmux for interactive terminals. TMUX_AUTO_START=0 opts out.
 if [[ -o interactive && -t 0 && -z "$TMUX" && "${TMUX_AUTO_START:-1}" != 0 ]] && (( $+commands[tmux] )); then
-  tmux new-session -A -s main
+  command tmux -f "$HOME/.tmux.conf" new-session -A -s main
 fi
