@@ -1,15 +1,16 @@
-let data_dir = '~/.vim'
-if empty(glob(data_dir . '/autoload/plug.vim'))
-  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
-endif
+" Home-only SSH tuning; preserve the existing plugins, theme and indentation.
+set nocompatible
+let $TMPDIR = expand('~/.vim/tmp')
 
-" Run PlugInstall if there are missing plugins
-autocmd VimEnter * if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
-  \| PlugInstall --sync | source $MYVIMRC
-\| endif
+" Lint on save/manual request, avoiding processes after every keystroke.
+let g:ale_lint_on_text_changed = 'never'
+let g:ale_lint_on_insert_leave = 0
+let g:ale_lint_on_enter = 0
+let g:ale_lint_on_save = 1
 
-call plug#begin()
+" Use installed plugins; maintenance is explicit with :PlugInstall/:PlugUpdate.
+if filereadable(expand('~/.vim/autoload/plug.vim'))
+  call plug#begin(expand('~/.vim/plugged'))
     Plug 'tpope/vim-sensible'
     Plug 'tpope/vim-fugitive'
     Plug 'tpope/vim-eunuch'
@@ -17,28 +18,31 @@ call plug#begin()
     Plug 'tpope/vim-commentary'
     Plug 'noahfrederick/vim-noctu'
     Plug 'itchyny/lightline.vim'
-    Plug 'preservim/nerdtree'
+    Plug 'preservim/nerdtree', { 'on': 'NERDTreeToggle' }
     Plug 'mattn/emmet-vim'
     Plug 'w0rp/ale'
     Plug 'airblade/vim-gitgutter'
-call plug#end()
+  call plug#end()
+endif
 
-map <C-A-o> :NERDTreeToggle<CR>
+filetype plugin indent on
+syntax enable
+nnoremap <silent> <C-A-o> :NERDTreeToggle<CR>
+nnoremap <silent> <F4> :NERDTreeToggle<CR>
 
-set tabstop=4
-set softtabstop=4
-set shiftwidth=4
-set expandtab
-set autoindent
-set number
-set colorcolumn=80
-set mouse=a
-set cursorline
-set ttyfast
+set tabstop=4 softtabstop=4 shiftwidth=4 expandtab autoindent
+set number colorcolumn=80 mouse=a cursorline ttyfast
+set hidden backspace=indent,eol,start
+set ignorecase smartcase incsearch hlsearch
+set wildmenu wildmode=longest:full,full
+set scrolloff=3 sidescrolloff=5
+set splitbelow splitright
+set lazyredraw synmaxcol=500
+set ttimeout ttimeoutlen=200
+set undofile writebackup
+let &undodir = expand('~/.vim/undo//')
+let &backupdir = expand('~/.vim/backup//')
+let &directory = expand('~/.vim/swap//')
 
-let g:lightline = {
-    \ 'colorscheme': '16color',
-    \ 'separator': { 'left': "\ue0bc", 'right': "\ue0ba" },
-    \ 'subseparator': { 'left': "\ue0bd", 'right': "\ue0bb" },
-    \}
-colorscheme noctu
+let g:lightline = { 'colorscheme': '16color', 'separator': { 'left': '', 'right': '' }, 'subseparator': { 'left': '|', 'right': '|' } }
+silent! colorscheme noctu

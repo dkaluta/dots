@@ -32,4 +32,5 @@ require("lazy").setup({
   install = { colorscheme = { "xcode" } },
   -- automatically check for plugin updates
   checker = { enabled = true },
+  ui = { icons = { cmd = "cmd", config = "config", debug = "debug", event = "event", favorite = "*", ft = "ft", import = "import", init = "init", keys = "keys", lazy = "lazy", list = { "*", ">", "+", "-" }, loaded = "[x]", not_loaded = "[ ]", plugin = "plugin", require = "require", runtime = "runtime", source = "source", start = "start", task = "[x]" } },
 })

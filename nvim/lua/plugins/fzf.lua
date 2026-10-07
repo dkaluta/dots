@@ -5,6 +5,6 @@ return{
   		dependencies = { "nvim-tree/nvim-web-devicons" },
   		-- or if using mini.icons/mini.nvim
   		-- dependencies = { "echasnovski/mini.icons" },
-  		opts = {}
+        opts = { file_icons = false, git_icons = false, color_icons = false }
 	}
 }

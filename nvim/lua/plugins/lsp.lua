@@ -1,129 +1,104 @@
+-- Keep LSP startup ordered: dependencies, capabilities, then server activation.
+local function format(bufnr, async)
+    local clients = vim.lsp.get_clients({ bufnr = bufnr })
+    local selected
+    for _, client in ipairs(clients) do
+        if client:supports_method("textDocument/formatting", bufnr) then
+            selected = selected or client
+            if client.name == "null-ls" then selected = client; break end
+        end
+    end
+    if selected then
+        vim.lsp.buf.format({ bufnr = bufnr, async = async,
+            filter = function(client) return client.id == selected.id end })
+    end
+end
+
 return {
-	{
-
-		"MunifTanjim/prettier.nvim",
-        dependencies = {
-            "jose-elias-alvarez/null-ls.nvim",
-            "nvim-lua/plenary.nvim",
-        },
-		init = function()
-            local null_ls = require("null-ls")
-            local prettier = require("prettier")
-            local group = vim.api.nvim_create_augroup("lsp_format_on_save",
-                {clear = false})
-            local event = "BufWritePre"
-            local async = event == "BufWritePost"
-
-            null_ls.setup({
+    {
+        "MunifTanjim/prettier.nvim",
+        dependencies = { "nvimtools/none-ls.nvim", "nvim-lua/plenary.nvim" },
+        config = function()
+            local group = vim.api.nvim_create_augroup("lsp_format_on_save", { clear = true })
+            require("null-ls").setup({
                 on_attach = function(client, bufnr)
-                    if client.supports_method("textDocument/formatting") then
-                        vim.keymap.set("n", "<Leader>f", function()
-                            vim.lsp.buf.format({
-                                bufnr = vim.api.nvim_get_current_buf() })
-                        end, {buffer = bufnr, desc = "[lsp] format"})
-
-                        -- format on save
-                        vim.api.nvim_clear_autocmds({
-                            buffer = bufnr,
-                            group = group
-                        })
-                        vim.api.nvim_create_autocmd(event, {
-                            buffer = bufnr,
-                            group = group,
-                            callback = function()
-                                vim.lsp.buf.format({
-                                    bufnr = bufnr,
-                                    async = async
-                                })
-                            end,
-                            desc = "[lsp] format on save",
+                    if client:supports_method("textDocument/formatting", bufnr) then
+                        vim.keymap.set("n", "<Leader>f", function() format(bufnr, false) end,
+                            { buffer = bufnr, desc = "Format buffer" })
+                        vim.api.nvim_create_autocmd("BufWritePre", {
+                            buffer = bufnr, group = group,
+                            callback = function() format(bufnr, false) end,
+                            desc = "Format on save",
                         })
                     end
-
-                    if client.supports_method(
-                        "textDocument/rangeFormatting") then
+                    if client:supports_method("textDocument/rangeFormatting", bufnr) then
                         vim.keymap.set("x", "<Leader>f", function()
-                            vim.lsp.buf.format({
-                                bufnr = vim.api.nvim_get_current_buf()
-                            })
-                        end, {buffer = bufnr, desc = "[lsp] format" })
+                            vim.lsp.buf.format({ bufnr = bufnr,
+                                filter = function(c) return c.id == client.id end })
+                        end, { buffer = bufnr, desc = "Format selection" })
                     end
                 end,
             })
-            prettier.setup({
-                bin = 'prettierd',
-                filetypes = {
-                    "css",
-                    "graphql",
-                    "html",
-                    "javascript",
-                    "javascriptreact",
-                    "json",
-                    "less",
-                    "markdown",
-                    "scss",
-                    "typescript",
-                    "typescriptreact",
-                    "yaml",
-                    "lua"
-                },
-                cli_options = {
-                    tab_width = 4,
-                    use_tabs = false,
-                    print_width = 80,
-                    end_of_line = "lf"
-                }
+            require("prettier").setup({
+                bin = "prettierd",
+                filetypes = { "css", "graphql", "html", "javascript", "javascriptreact",
+                    "json", "less", "markdown", "scss", "typescript", "typescriptreact", "yaml", "lua" },
+                cli_options = { tab_width = 4, use_tabs = false, print_width = 80, end_of_line = "lf" },
             })
-		end,
-	},
-	{
-		"saghen/blink.cmp",
-		-- optional: provides snippets for the snippet source
-		dependencies = "rafamadriz/friendly-snippets",
-
-		-- use a release tag to download pre-built binaries
-		version = "*",
-		-- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
-		-- build = 'cargo build --release',
-		-- If you use nix, you can build from source using latest nightly rust with:
-		-- build = 'nix run .#build-plugin',
-
-		---@module 'blink.cmp'
-		---@type blink.cmp.Config
-		opts = {
-			-- 'default' for mappings similar to built-in completion
-			-- 'super-tab' for mappings similar to vscode (tab to accept, arrow keys to navigate)
-			-- 'enter' for mappings similar to 'super-tab' but with 'enter' to accept
-			-- See the full "keymap" documentation for information on defining your own keymap.
-			keymap = { preset = "default" },
-
-			appearance = {
-				-- Sets the fallback highlight groups to nvim-cmp's highlight groups
-				-- Useful for when your theme doesn't support blink.cmp
-				-- Will be removed in a future release
-				use_nvim_cmp_as_default = true,
-				-- Set to 'mono' for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-				-- Adjusts spacing to ensure icons are aligned
-				nerd_font_variant = "mono",
-			},
-
-			-- Default list of enabled providers defined so that you can extend it
-			-- elsewhere in your config, without redefining it, due to `opts_extend`
-			sources = {
-				default = { "lsp", "path", "snippets", "buffer" },
-			},
-		},
-		opts_extend = { "sources.default" },
-	},
-	{
-		"williamboman/mason.nvim",
-		dependencies = {
-			"williamboman/mason-lspconfig.nvim",
-			"neovim/nvim-lspconfig",
-		},
-		init = function()
-			require("mason").setup()
-			require("mason-lspconfig").setup()
-		end,
-	},
+        end,
+    },
+    {
+        "saghen/blink.cmp",
+        dependencies = "rafamadriz/friendly-snippets",
+        version = "*",
+        opts = {
+            keymap = { preset = "default" },
+            sources = { default = { "lsp", "path", "snippets", "buffer" } },
+            completion = {
+                menu = { draw = { columns = { { "label", "label_description", gap = 1 }, { "kind" } } } },
+            },
+        },
+        opts_extend = { "sources.default" },
+    },
+    {
+        "neovim/nvim-lspconfig",
+        dependencies = { "williamboman/mason.nvim", "williamboman/mason-lspconfig.nvim", "saghen/blink.cmp" },
+        config = function()
+            require("mason").setup({ ui = { icons = {
+                package_installed = "[x]", package_pending = "[-]", package_uninstalled = "[ ]",
+            } } })
+            vim.lsp.config("*", { capabilities = require("blink.cmp").get_lsp_capabilities() })
+            vim.lsp.config("lua_ls", { settings = { Lua = {
+                runtime = { version = "LuaJIT" }, diagnostics = { globals = { "vim" } },
+                workspace = { checkThirdParty = false, library = { vim.env.VIMRUNTIME } },
+            } } })
+            require("mason-lspconfig").setup({
+                ensure_installed = { "lua_ls", "pyright", "vtsls" },
+                -- The installed StyLua supports formatting, but not --lsp.
+                automatic_enable = { exclude = { "stylua" } },
+            })
+            if vim.fn.executable("clangd") == 1 then vim.lsp.enable("clangd") end
+            local severity = vim.diagnostic.severity
+            vim.diagnostic.config({
+                virtual_text = { prefix = ">", spacing = 2 },
+                signs = { text = { [severity.ERROR] = "E", [severity.WARN] = "W",
+                    [severity.INFO] = "I", [severity.HINT] = "H" } },
+            })
+            vim.api.nvim_create_autocmd("LspAttach", {
+                group = vim.api.nvim_create_augroup("dotfiles_lsp_keys", { clear = true }),
+                callback = function(event)
+                    local opts = { buffer = event.buf, silent = true }
+                    local function map(key, fn, desc)
+                        vim.keymap.set("n", key, fn, vim.tbl_extend("force", opts, { desc = desc }))
+                    end
+                    map("gd", vim.lsp.buf.definition, "LSP definition")
+                    map("gr", vim.lsp.buf.references, "LSP references")
+                    map("K", vim.lsp.buf.hover, "LSP hover")
+                    map("<Leader>rn", vim.lsp.buf.rename, "LSP rename")
+                    map("<Leader>ca", vim.lsp.buf.code_action, "LSP code action")
+                    map("<Leader>f", function() format(event.buf, false) end, "Format buffer")
+                end,
+            })
+        end,
+    },
 }

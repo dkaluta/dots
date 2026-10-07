@@ -1,15 +1,32 @@
-# ! MY CHANGES START HERE!
-# fix colors somewhere
-export TERM=xterm-256color
-export EDITOR=gvim
+# Home-only SSH tuning. Original configuration is in ~/.ssh-tuning-backup-*.
+if (( $+commands[nvim] )); then
+  export EDITOR=nvim VISUAL=nvim
+else
+  export EDITOR=vim VISUAL=vim
+fi
+export PAGER=less
+export TMPDIR="$HOME/.cache/ssh-tuning/tmp"
 
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=50000
+SAVEHIST=30000
+setopt APPEND_HISTORY EXTENDED_HISTORY HIST_IGNORE_DUPS HIST_FIND_NO_DUPS
+setopt HIST_REDUCE_BLANKS HIST_IGNORE_SPACE
+[[ -o sharehistory ]] || setopt INC_APPEND_HISTORY
+KEYTIMEOUT=20
 
-# zplug
-source ~/.zplug/init.zsh
-zplug mafredri/zsh-async, from:github
-zplug sindresorhus/pure, use:pure.zsh, from:github, as:theme
+# Reuse site completion when present; initialize it once on standalone hosts.
+if (( ! $+_comps )); then
+  autoload -Uz compinit
+  compinit -d "$HOME/.cache/zsh/zcompdump"
+fi
+zmodload zsh/complist
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "$HOME/.cache/zsh"
 
-# color pure
+# Keep the existing Pure colors and installed prompt, without manager startup.
 zstyle :prompt:pure:execution_time          color white
 zstyle :prompt:pure:git:arrow               color white
 zstyle :prompt:pure:git:branch              color white
@@ -22,14 +39,34 @@ zstyle :prompt:pure:user                    color white
 zstyle :prompt:pure:user:root               color white
 zstyle :prompt:pure:virtualenv              color white
 
+if [[ "$OSTYPE" == linux* ]]; then
+  export TMUX_TMPDIR="$HOME/.cache/tmux/${HOST%%.*}"
+else
+  export TMUX_TMPDIR="$HOME/.cache/tmux"
+fi
+if [[ ! -d "$TMUX_TMPDIR" ]]; then
+  mkdir -p "$TMUX_TMPDIR" && chmod 700 "$TMUX_TMPDIR"
+fi
+PURE_PROMPT_SYMBOL='>'
+PURE_PROMPT_VICMD_SYMBOL='<'
+PURE_GIT_UP_ARROW='+'
+PURE_GIT_DOWN_ARROW='-'
+PURE_GIT_STASH_SYMBOL='='
 
-# Install plugins if there are plugins that have not been installed
-if ! zplug check --verbose; then
-    printf "Install? [y/N]: "
-    if read -q; then
-        echo; zplug install
-    fi
+if [[ -r "$HOME/.zplug/repos/mafredri/zsh-async/async.zsh" &&
+      -r "$HOME/.zplug/repos/sindresorhus/pure/pure.zsh" ]]; then
+  source "$HOME/.zplug/repos/mafredri/zsh-async/async.zsh"
+  source "$HOME/.zplug/repos/sindresorhus/pure/pure.zsh"
+else
+  PROMPT='%n@%m %~ %# '
 fi
 
-# Then, source plugins and add commands to $PATH
-zplug load
+# Installed fzf supplies Ctrl-R history, Ctrl-T files, and Alt-C directories.
+if (( $+commands[fzf] )); then
+  eval "$(fzf --zsh)"
+fi
+
+# Automatic tmux for interactive terminals. TMUX_AUTO_START=0 opts out.
+if [[ -o interactive && -t 0 && -z "$TMUX" && "${TMUX_AUTO_START:-1}" != 0 ]] && (( $+commands[tmux] )); then
+  tmux new-session -A -s main
+fi
